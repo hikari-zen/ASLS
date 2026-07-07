@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASLS - VERSION 2.0 2026</title>
+  <style>
+    /* COMPACT, FAST-LOADING CSS - FULLY RESTORED */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      height: 90vh;
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      display: flex;
+      overflow: hidden;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .left-panel {
+      flex: 1;
+      color: white;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background-color 0.3s ease;
+    }
+
+    .left-panel.login-bg {
+      background: #186E00 !important; /* Green */
+    }
+
+    .left-panel.logout-bg {
+      background: #c0392b !important; /* Darker Red */
+    }
+
+    .left-panel h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    .left-panel .mode-message {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      animation: pulseText 2s infinite;
+    }
+
+    @keyframes pulseText {
+      0% { opacity: 1; }
+      50% { opacity: 0.9; }
+      100% { opacity: 1; }
+    }
+
+    .left-panel p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+
+    .stats {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .right-panel {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .camera-container {
+      flex: 1;
+      background: #f0f0f0;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    #video, #canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    .camera-status {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #f39c12;
+      animation: pulse 1.5s infinite;
+    }
+
+    .status-dot.ready {
+      background: #27ae60;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .input-area {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 15px;
+    }
+
+    .lrn-input {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .lrn-input input {
+      flex: 1;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .lrn-input input:focus {
+      outline: none;
+      border-color: #186E00;
+      box-shadow: 0 0 0 3px rgba(24,110,0,0.1);
+    }
+
+    .lrn-input input.error {
+      border-color: #e74c3c;
+    }
+
+    .lrn-input input:disabled {
+      background: #e0e0e0;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .lrn-input button {
+      padding: 15px 30px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: none; /* HIDE THE CAPTURE BUTTON */
+    }
+
+    .preview {
+      display: none; /* HIDE PREVIEW AREA COMPLETELY */
+    }
+
+    .quick-stats {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    /* Mode indicator */
+    .mode-indicator {
+      margin-top: 15px;
+      padding: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      backdrop-filter: blur(5px);
+    }
+
+    .mode-badge {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .mode-badge.login {
+      background: #27ae60;
+      color: white;
+    }
+
+    .mode-badge.logout {
+      background: #e74c3c;
+      color: white;
+    }
+
+    /* UPDATED: Success animation - BIG and DETAILED */
+    .success-flash {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: white;
+      padding: 50px 80px;
+      border-radius: 30px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      z-index: 3000;
+      animation: flashPop 0.5s ease-out;
+      text-align: center;
+      min-width: 600px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border: 5px solid rgba(255,255,255,0.3);
+    }
+
+    .success-flash .action {
+      font-size: 2rem;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .success-flash .name {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin: 15px 0;
+      line-height: 1.2;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .success-flash .details {
+      font-size: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 3px solid rgba(255,255,255,0.3);
+    }
+
+    .success-flash .grade, .success-flash .section {
+      background: rgba(255,255,255,0.2);
+      padding: 10px 25px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+
+    @keyframes flashPop {
+      0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    /* Processing indicator */
+    .processing-indicator {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 600;
+      z-index: 2000;
+      animation: pulse 1.5s infinite;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .left-panel {
+        padding: 20px;
+      }
+      .left-panel h1 {
+        font-size: 2rem;
+      }
+      .left-panel .mode-message {
+        font-size: 1.5rem;
+      }
+      .success-flash {
+        min-width: 90%;
+        padding: 30px;
+      }
+      .success-flash .name {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel with dynamic background color -->
+    <div class="left-panel" id="leftPanel">
+      <h1>ASLS 2.0</h1>
+      <div class="mode-message" id="modeMessage">YOU ARE LOGGING IN</div>
+      <p>Automated Student Log System</p>
+      <div class="stats">
+        <div class="stat-item">
+          <span>📊 Today's Logs:</span>
+          <span id="todayCount">0</span>
+        </div>
+        <div class="stat-item">
+          <span>⏱️ Students Loaded:</span>
+          <span id="responseTime">0</span>
+        </div>
+        <div class="stat-item">
+          <span>💾 Local Cache:</span>
+          <span id="cacheSize">0 logs</span>
+        </div>
+      </div>
+      <!-- Current Mode Indicator -->
+      <div class="mode-indicator">
+        <span>Current Mode:</span>
+        <span class="mode-badge" id="modeBadge">LOG IN</span>
+      </div>
+    </div>
+    
+    <div class="right-panel">
+      <div class="camera-container">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="camera-status">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Initializing...</span>
+        </div>
+      </div>
+      
+      <div class="input-area">
+        <div class="lrn-input">
+          <input type="text" 
+                 id="lrn" 
+                 placeholder="Scan or enter 12-digit LRN" 
+                 maxlength="12"
+                 inputmode="numeric"
+                 autocomplete="off"
+                 style="text-align: center; font-size: 1.5rem; letter-spacing: 4px;">
+        </div>
+        
+        <div class="quick-stats">
+          <span>📷 Camera Ready</span>
+          <span>⚡ Auto-process on 12 digits</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REMOVED: overlay success messages - keeping only flash animation -->
+  <!-- <div class="overlay" id="successOverlay">...</div> -->
+  <!-- <div class="overlay" id="errorOverlay">...</div> -->
+
+  <!-- Load student database -->
+  <script src="students.js"></script>
+
+  <script>
+    // ============================================
+    // STUDENT DATABASE SETUP
+    // ============================================
+    
+    let studentMap = new Map();
+
+    function initializeStudentMap() {
+      if (typeof STUDENTS_DATA !== "undefined" && STUDENTS_DATA.length > 0) {
+        studentMap.clear();
+        STUDENTS_DATA.forEach(s => studentMap.set(String(s.lrn), s));
+        console.log(`✅ Loaded ${studentMap.size} students`);
+        document.getElementById('responseTime').textContent = studentMap.size + ' students';
+      } else {
+        console.error("❌ STUDENTS_DATA not loaded");
+        document.getElementById('responseTime').textContent = 'No data';
+      }
+    }
+
+    // Initialize immediately
+    initializeStudentMap();
+    
+    // ============================================
+    // DOM Elements
+    // ============================================
+    
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let currentStream = null;
+    let capturedImage = null;
+    let isProcessing = false;
+    
+    const lrnInput = document.getElementById('lrn');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const modeBadge = document.getElementById('modeBadge');
+    const modeMessage = document.getElementById('modeMessage');
+    const leftPanel = document.getElementById('leftPanel');
+    const todayCount = document.getElementById('todayCount');
+    const cacheSize = document.getElementById('cacheSize');
+    
+    // Get action from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let action = urlParams.get('action') || 'Log in';
+    
+    // ============================================
+    // UPDATE UI BASED ON ACTION
+    // ============================================
+    
+    function updateActionUI() {
+      modeBadge.textContent = action;
+      
+      if (action === 'Log in') {
+        modeMessage.textContent = 'YOU ARE LOGGING IN';
+        modeBadge.className = 'mode-badge login';
+        leftPanel.classList.add('login-bg');
+        leftPanel.classList.remove('logout-bg');
+      } else {
+        modeMessage.textContent = 'YOU ARE LOGGING OUT';
+        modeBadge.className = 'mode-badge logout';
+        leftPanel.classList.add('logout-bg');
+        leftPanel.classList.remove('login-bg');
+      }
+    }
+    
+    // ============================================
+    // LOCAL STORAGE FUNCTIONS
+    // ============================================
+    
+    function getTodayPath() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const period = now.getHours() >= 12 ? 'PM' : 'AM';
+      return `${year}-${month}-${day}-${period}`;
+    }
+    
+    function saveLogLocally(logEntry) {
+      // Master log
+      let masterLog = JSON.parse(localStorage.getItem('asls_master') || '[]');
+      masterLog.push(logEntry);
+      if (masterLog.length > 10000) masterLog = masterLog.slice(-10000);
+      localStorage.setItem('asls_master', JSON.stringify(masterLog));
+      
+      // Daily log
+      const today = getTodayPath();
+      let dailyLog = JSON.parse(localStorage.getItem(`asls_${today}`) || '[]');
+      dailyLog.push(logEntry);
+      localStorage.setItem(`asls_${today}`, JSON.stringify(dailyLog));
+      
+      // Update stats
+      updateStats();
+      
+      return true;
+    }
+    
+    function updateStats() {
+      const master = JSON.parse(localStorage.getItem('asls_master') || '[]');
+      const today = getTodayPath();
+      const daily = JSON.parse(localStorage.getItem(`asls_${today}`) || '[]');
+      
+      if (todayCount) todayCount.textContent = daily.length;
+      if (cacheSize) cacheSize.textContent = master.length + ' logs';
+    }
+    
+    // ============================================
+    // STUDENT LOOKUP
+    // ============================================
+    
+    function findStudent(lrn) {
+      if (!studentMap || studentMap.size === 0) {
+        console.error("studentMap not ready");
+        return null;
+      }
+      return studentMap.get(String(lrn));
+    }
+    
+    // ============================================
+    // CAMERA FUNCTIONS
+    // ============================================
+    
+    async function initCamera() {
+      try {
+        statusText.textContent = 'Requesting camera...';
+        
+        if (currentStream) {
+          currentStream.getTracks().forEach(t => t.stop());
+        }
+        
+        currentStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user' },
+          audio: false 
+        });
+        
+        video.srcObject = currentStream;
+        await video.play();
+        
+        statusDot.className = 'status-dot ready';
+        statusText.textContent = 'Ready';
+        
+      } catch (error) {
+        statusText.textContent = 'Camera error';
+        statusDot.className = 'status-dot';
+      }
+    }
+    
+    function captureAndProcess() {
+      if (isProcessing) return;
+      
+      const lrn = lrnInput.value.replace(/\D/g, '');
+
+      if (!lrn || lrn.length !== 12) {
+        showError('Enter valid 12-digit LRN');
+        lrnInput.classList.add('error');
+        setTimeout(() => lrnInput.classList.remove('error'), 1500);
+        return;
+      }
+      
+      const student = findStudent(lrn);
+      if (!student) {
+        showError('Student not found');
+        lrnInput.classList.add('error');
+        setTimeout(() => lrnInput.classList.remove('error'), 1500);
+        lrnInput.value = ''; // Clear for next scan
+        lrnInput.focus();
+        return;
+      }
+      
+      // Process immediately
+      processLog(student, lrn);
+    }
+    
+    function processLog(student, lrn) {
+      isProcessing = true;
+      lrnInput.disabled = true;
+      
+      // Show processing indicator
+      const processingDiv = document.createElement('div');
+      processingDiv.className = 'processing-indicator';
+      processingDiv.textContent = `🔄 Processing ${action}...`;
+      document.body.appendChild(processingDiv);
+      
+      // Capture photo
+      setTimeout(() => {
+        try {
+          if (video.videoWidth > 0) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedImage = canvas.toDataURL('image/jpeg', 0.6);
+          } else {
+            capturedImage = 'no-photo';
+          }
+        } catch (e) {
+          capturedImage = 'no-photo';
+        }
+        
+        // Create log entry
+        const now = new Date();
+        const logEntry = {
+          timestamp: now.toISOString(),
+          time: now.toLocaleTimeString(),
+          date: now.toLocaleDateString(),
+          period: now.getHours() >= 12 ? 'PM' : 'AM',
+          lrn: lrn,
+          name: student.name,
+          sex: student.sex || 'N/A',
+          grade: student.grade || 'N/A',
+          section: student.section || 'N/A',
+          action: action,
+          photo: capturedImage,
+          status: 'verified'
+        };
+
+        // Save to localStorage
+        saveLogLocally(logEntry);
+        
+        // UPDATED: Show ONE success flash with ALL details
+        const flash = document.createElement('div');
+        flash.className = 'success-flash';
+        flash.innerHTML = `
+          <div class="action">✅ ${action} SUCCESS!</div>
+          <div class="name">${student.name}</div>
+          <div class="details">
+            <span class="grade">Grade ${student.grade}</span>
+            <span class="section">${student.section}</span>
+          </div>
+        `;
+        document.body.appendChild(flash);
+        
+        // Remove flash after 3 seconds
+        setTimeout(() => {
+          flash.style.animation = 'fadeOut 0.3s ease-out';
+          setTimeout(() => {
+            if (flash.parentNode) document.body.removeChild(flash);
+          }, 300);
+        }, 3000);
+        
+        // REMOVED: overlay success message
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(processingDiv);
+          isProcessing = false;
+          lrnInput.disabled = false;
+          lrnInput.value = '';
+          lrnInput.focus();
+        }, 500);
+        
+      }, 200); // Small delay to ensure capture
+    }
+    
+    // UPDATED: Error function (kept for errors)
+    function showError(msg) {
+      // Create error flash
+      const flash = document.createElement('div');
+      flash.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 40px 60px;
+        border-radius: 30px;
+        font-size: 2rem;
+        font-weight: bold;
+        z-index: 3000;
+        animation: flashPop 0.5s ease-out;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        border: 5px solid rgba(255,255,255,0.3);
+      `;
+      flash.textContent = `❌ ${msg}`;
+      document.body.appendChild(flash);
+      
+      setTimeout(() => {
+        flash.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => {
+          if (flash.parentNode) document.body.removeChild(flash);
+        }, 300);
+      }, 2000);
+    }
+    
+    // ============================================
+    // INPUT HANDLER - AUTO PROCESS ON 12 DIGITS
+    // ============================================
+    
+    lrnInput.addEventListener('input', function(e) {
+      // Only allow numbers
+      this.value = this.value.replace(/[^0-9]/g, '').slice(0, 12);
+      
+      // Auto-process when 12 digits are entered
+      if (this.value.length === 12 && !isProcessing) {
+        captureAndProcess();
+      }
+    });
+    
+    lrnInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && this.value.length === 12 && !isProcessing) {
+        e.preventDefault();
+        captureAndProcess();
+      }
+    });
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    window.onload = function() {
+      updateActionUI();
+      initCamera();
+      updateStats();
+      lrnInput.focus();
+      
+      // Update stats every second
+      setInterval(updateStats, 1000);
+    };
+    
+    window.onbeforeunload = function() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+      }
+    };
+    
+  </script>
+</body>
+</html>
