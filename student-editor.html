@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASLS - Google Sheets Sync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0F9D58 0%, #4285F4 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #0F9D58;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .sheet-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed #0F9D58;
+        }
+
+        .sheet-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-green {
+            background: #0F9D58;
+            color: white;
+        }
+
+        .btn-green:hover {
+            background: #0b8043;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(15,157,88,0.3);
+        }
+
+        .btn-blue {
+            background: #4285F4;
+            color: white;
+        }
+
+        .btn-blue:hover {
+            background: #3367D6;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+
+        .steps {
+            background: #e8f5e9;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 30px 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 35px;
+            height: 35px;
+            background: #0F9D58;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .preview {
+            background: #2d2d2d;
+            color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .copy-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            📊 Google Sheets → GitHub Sync
+            <span style="font-size: 1rem; color: #666;">One-click update</span>
+        </h1>
+        <p class="subtitle">Edit in Google Sheets, click sync, updates automatically on GitHub</p>
+
+        <div class="sheet-section">
+            <div class="sheet-icon">📗</div>
+            <h2 style="margin-bottom: 20px;">Step 1: Edit Google Sheet</h2>
+            <p style="margin-bottom: 25px;">All changes made in the Google Sheet will be synced to GitHub</p>
+            
+            <a href="https://docs.google.com/spreadsheets/d/1YEZR6BwtTHdfjsNguA-fo0d5cnLEglUJo2BnXgNCPvU/edit?usp=sharing" target="_blank" class="btn btn-green" style="text-decoration: none;">
+                📗 OPEN GOOGLE SHEET
+            </a>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <span style="background: #f0f0f0; padding: 10px 20px; border-radius: 50px;">⬇️ Then click sync below ⬇️</span>
+        </div>
+
+        <button class="btn btn-blue" onclick="syncToGitHub()" style="width: 100%; justify-content: center;">
+            🔄 SYNC TO GITHUB
+        </button>
+
+        <div id="status" class="status"></div>
+
+        <div class="steps">
+            <h3 style="margin-bottom: 20px; color: #0F9D58;">📋 How it works:</h3>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div><strong>Edit Google Sheet</strong> - Add, edit, or delete students in the spreadsheet</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div><strong>Click Sync Button</strong> - One click updates everything</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div><strong>Automatic GitHub Update</strong> - students.js is regenerated and pushed to GitHub</div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div><strong>Live in 1-2 minutes</strong> - Website updates automatically</div>
+            </div>
+        </div>
+
+        <div class="preview" id="preview">
+            Waiting for sync...
+        </div>
+
+        <button class="copy-btn" onclick="copyToClipboard()" style="display: none;" id="copyBtn">
+            📋 Copy students.js content
+        </button>
+    </div>
+
+    <script>
+        // ============================================
+        // GOOGLE APPS SCRIPT WEB APP URL
+        // ============================================
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMknrZnGPMIGg3HBfhPFuOtPMQ_fYZTNHi3ZX0FNCYatUtkOIFFrnbY16Xet1vN6BR/exec';
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.className = 'status ' + type;
+            status.textContent = message;
+        }
+
+        async function syncToGitHub() {
+            showStatus('🔄 Syncing with Google Sheets...', 'info');
+            
+            try {
+                const response = await fetch(APPS_SCRIPT_URL);
+                const data = await response.text();
+                
+                // Try to parse if it's JSON
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.success) {
+                        showStatus('✅ Sync successful! ' + jsonData.message, 'success');
+                        
+                        // Show preview
+                        document.getElementById('preview').textContent = jsonData.preview;
+                        document.getElementById('copyBtn').style.display = 'inline-block';
+                    } else {
+                        showStatus('❌ Error: ' + jsonData.error, 'error');
+                    }
+                } catch (e) {
+                    // If not JSON, show raw response
+                    showStatus('✅ Sync completed!', 'success');
+                    document.getElementById('preview').textContent = data;
+                }
+                
+            } catch (error) {
+                showStatus('❌ Connection error: ' + error.message, 'error');
+            }
+        }
+
+        function copyToClipboard() {
+            const preview = document.getElementById('preview').textContent;
+            navigator.clipboard.writeText(preview).then(() => {
+                alert('✅ Copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
